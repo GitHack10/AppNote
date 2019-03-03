@@ -13,154 +13,196 @@ import android.net.ConnectivityManager;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Environment;
-import android.support.v4.content.FileProvider;
 import android.util.Log;
-import android.widget.Toast;
 
 import com.arellomobile.mvp.InjectViewState;
 import com.arellomobile.mvp.MvpPresenter;
-import com.arellomobile.mvp.MvpView;
-import com.example.appnote.model.Load;
+import com.example.appnote.model.Media;
 
-import java.io.BufferedInputStream;
+import org.jetbrains.annotations.NotNull;
+
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.net.URL;
-import java.net.URLConnection;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
+
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
 
 @InjectViewState
-public class MainPresenter extends MvpPresenter<MvpViewMain> {
+public class MainPresenter extends MvpPresenter<MainView> {
 
+    private DataManager dataManager;
     public static final String APP_PREFERENCES = "mysettings";
     public static final String APP_PREFERENCES_NAME = "Name";
     SharedPreferences mSettings;
-    List<Load> listStr = new ArrayList<>();
+    List<Media> listStr = new ArrayList<>();
 
     DownloadManager downloadManager;
-    String _URL = "https://ia800208.us.archive.org/4/items/Popeye_forPresident/Popeye_forPresident_512kb.mp4";
     long refer;
     BroadcastReceiver downloadcomplete;
     BroadcastReceiver notificationClick;
 
-    List<Load> list = new ArrayList<>();
+    List<Media> list = new ArrayList<>();
     MainActivity mainActivity;
 
-    MainPresenter(MainActivity mainActivity){
+    MainPresenter(MainActivity mainActivity, DataManager dataManager) {
         this.mainActivity = mainActivity;
+        this.dataManager = dataManager;
         mSettings = mainActivity.getSharedPreferences(APP_PREFERENCES, Context.MODE_PRIVATE);
+    }
+
+    @Override
+    protected void onFirstViewAttach() {
+        super.onFirstViewAttach();
         load();
     }
 
-    private void load(){
+    private void load() {
 
-        list.add(new Load());
-        list.add(new Load());
-        list.add(new Load());
-        list.add(new Load());
-        list.add(new Load());
+        dataManager.getAllMedia().enqueue(new Callback<List<Media>>() {
+            @Override
+            public void onResponse(@NotNull Call<List<Media>> call, @NotNull Response<List<Media>> response) {
+                if (response.isSuccessful() && getViewState() != null) {
+                    if (response.body() != null) {
+                        list = response.body();
+                    }
+                    for (int i = 0; i < list.size(); i++) {
+                        list.get(i).setName("name" + (i+1));
+                    }
+                    getViewState().showImage(list, true);
+//                    checkOnline();
+                }
+            }
 
-        list.get(0).setUrl("https://img.lookmytrips.com/images/look5p3n/big-56e6d0f4ff93672409064ce0-56ec50d262f29-1beok6i.jpg");
-        list.get(1).setUrl("https://img1.goodfon.ru/original/1920x1080/f/cd/nebo-okean-zakat.jpg");
-        list.get(2).setUrl("https://s1.1zoom.ru/b5050/837/Bridges_Skyscrapers_USA_449757_1920x1200.jpg");
-        list.get(3).setUrl("https://ia800208.us.archive.org/4/items/Popeye_forPresident/Popeye_forPresident_512kb.mp4");
-        list.get(4).setUrl("https://ia800208.us.archive.org/4/items/Popeye_forPresident/Popeye_forPresident_512kb.mp4");
-        list.get(0).setName("name1");
-        list.get(1).setName("name2");
-        list.get(2).setName("name3");
-        list.get(3).setName("name4");
-        list.get(4).setName("name5");
-        list.get(0).setImage(true);
-        list.get(1).setImage(true);
-        list.get(2).setImage(true);
-        list.get(3).setImage(false);
-        list.get(4).setImage(false);
+            @Override
+            public void onFailure(Call<List<Media>> call, Throwable t) {
+                // FIXME
+                try {
+                    listStr = new ArrayList<>();
+                    int ret = mSettings.getInt(APP_PREFERENCES_NAME, 1);
 
-       // downloadVideo("https://ia800208.us.archive.org/4/items/Popeye_forPresident/Popeye_forPresident_512kb.mp4");
+                    for (int i = 0; i < ret; i++) {
+                        listStr.add(new Media(0, "", ""));
+                        if (mSettings.getBoolean(i + "b", true)) {
+                            listStr.get(i).setName(mSettings.getString(i + "a", ""));
+//                        listStr.get(i).setType(mSettings.getInt(i + "b", 0));
+                        } else { }
+                    }
+                    getViewState().showImage(listStr, false);
+                } catch (Exception e) {
+                    //экран нет подключения к интернету
+                }
+            }
+        });
+//        list.add(new Load());
+//        list.add(new Load());
+//        list.add(new Load());
+//        list.add(new Load());
+//        list.add(new Load());
 
-        if(isOnline()) {
+//        list.get(0).setUrl("https://img.lookmytrips.com/images/look5p3n/big-56e6d0f4ff93672409064ce0-56ec50d262f29-1beok6i.jpg");
+//        list.get(1).setUrl("https://img1.goodfon.ru/original/1920x1080/f/cd/nebo-okean-zakat.jpg");
+//        list.get(2).setUrl("https://s1.1zoom.ru/b5050/837/Bridges_Skyscrapers_USA_449757_1920x1200.jpg");
+//        list.get(3).setUrl("https://ia800208.us.archive.org/4/items/Popeye_forPresident/Popeye_forPresident_512kb.mp4");
+//        list.get(4).setUrl("https://ia800208.us.archive.org/4/items/Popeye_forPresident/Popeye_forPresident_512kb.mp4");
+//        list.get(0).setName("name1");
+//        list.get(1).setName("name2");
+//        list.get(2).setName("name3");
+//        list.get(3).setName("name4");
+//        list.get(4).setName("name5");
+//        list.get(0).setImage(true);
+//        list.get(1).setImage(true);
+//        list.get(2).setImage(true);
+//        list.get(3).setImage(false);
+//        list.get(4).setImage(false);
 
-                Toast.makeText(mainActivity.getApplicationContext(), mSettings.getInt(APP_PREFERENCES_NAME, 0)+"", Toast.LENGTH_SHORT).show();
-                for (int i = 0; i < mSettings.getInt(APP_PREFERENCES_NAME, 0); i++) {
-                    File file = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS).getPath()
-                            +"/"+mSettings.getString(i+"a", ""));
-                    file.delete();
-                    try {
+        // downloadVideo("https://ia800208.us.archive.org/4/items/Popeye_forPresident/Popeye_forPresident_512kb.mp4");
 
+    }
+
+    private void checkOnline() {
+        if (isOnline()) {
+
+//                Toast.makeText(mainActivity.getApplicationContext(), mSettings.getInt(APP_PREFERENCES_NAME, 0)+"", Toast.LENGTH_SHORT).show();
+            for (int i = 0; i < mSettings.getInt(APP_PREFERENCES_NAME, 0); i++) {
+                File file = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS).getPath()
+                        + "/" + mSettings.getString(i + "a", ""));
+                file.delete();
+                try {
+
+                    if (file.exists()) {
+                        file.getCanonicalFile().delete();
                         if (file.exists()) {
-                            file.getCanonicalFile().delete();
-                            if (file.exists()) {
-                                mainActivity.getApplicationContext().deleteFile(file.getName());
-                            }
+                            mainActivity.getApplicationContext().deleteFile(file.getName());
                         }
-                    }catch (Exception e){}
-                }
-
-            for (int i = 0; i < list.size(); i++) {
-                if(list.get(i).isImage()) {
-                    SharedPreferences.Editor editor = mSettings.edit();
-                    editor.putString(i + "a", list.get(i).getName());
-                    editor.putBoolean(i + "b", list.get(i).isImage());
-                    editor.apply();
-                }else {
-                    SharedPreferences.Editor editor = mSettings.edit();
-                    editor.putString(i + "a", list.get(i).getName());
-                    editor.putBoolean(i + "b", list.get(i).isImage());
-                    editor.apply();
+                    }
+                } catch (Exception e) {
                 }
             }
 
             for (int i = 0; i < list.size(); i++) {
-                if(list.get(i).isImage()) {
-                    DownloadImage downloadImage = new DownloadImage();
-                    downloadImage.setName(list.get(i).getName());
-                    downloadImage.execute(list.get(i).getUrl());
-                }else {
-                   // startdownload(list.get(i).getName(), list.get(i).getUrl(),i);
+                if (list.get(i).getType() == 0) {
+                    SharedPreferences.Editor editor = mSettings.edit();
+                    editor.putString(i + "a", list.get(i).getName());
+                    editor.putInt(i + "b", list.get(i).getType());
+                    editor.apply();
+                } else {
+                    SharedPreferences.Editor editor = mSettings.edit();
+                    editor.putString(i + "a", list.get(i).getName());
+                    editor.putInt(i + "b", list.get(i).getType());
+                    editor.apply();
                 }
             }
+
+//            for (int i = 0; i < list.size(); i++) {
+//                if(list.get(i).getType() == 0) {
+//                    DownloadImage downloadImage = new DownloadImage();
+//                    downloadImage.setName(list.get(i).getName());
+//                    downloadImage.execute(list.get(i).getUrl());
+//                }else {
+//                   // startdownload(list.get(i).getName(), list.get(i).getUrl(),i);
+//                }
+//            }
 
             listStr = new ArrayList<>();
 
             int ret = mSettings.getInt(APP_PREFERENCES_NAME, list.size());
 
-           // Toast.makeText(mainActivity.getApplicationContext(), mSettings.getInt(APP_PREFERENCES_NAME, 0)+"", Toast.LENGTH_SHORT).show();
+            // Toast.makeText(mainActivity.getApplicationContext(), mSettings.getInt(APP_PREFERENCES_NAME, 0)+"", Toast.LENGTH_SHORT).show();
 
             for (int i = 0; i < ret; i++) {
-                listStr.add(new Load());
+                listStr.add(new Media(0, "", ""));
                 listStr.get(i).setName(mSettings.getString(i + "a", ""));
-                listStr.get(i).setImage(mSettings.getBoolean(i + "b", true));
+//                listStr.get(i).setType(mSettings.getInt(i + "b", 0));
             }
 
             getViewState().showImage(listStr, true);
-        }else {
+        } else {
             try {
                 listStr = new ArrayList<>();
 
                 int ret = mSettings.getInt(APP_PREFERENCES_NAME, 1);
 
 
-                for (int i=0;i<ret;i++){
-                    listStr.add(new Load());
-                    if(mSettings.getBoolean(i+"b", true)) {
+                for (int i = 0; i < ret; i++) {
+                    listStr.add(new Media(0, "", ""));
+                    if (mSettings.getBoolean(i + "b", true)) {
                         listStr.get(i).setName(mSettings.getString(i + "a", ""));
-                        listStr.get(i).setImage(mSettings.getBoolean(i + "b", true));
-                    }else {
+//                        listStr.get(i).setType(mSettings.getInt(i + "b", 0));
+                    } else {
                     }
 
                 }
                 getViewState().showImage(listStr, false);
-            }catch (Exception e){
+            } catch (Exception e) {
                 //экран нет подключения к интернету
             }
 
         }
-
-
     }
 
     protected boolean isOnline() {
@@ -246,10 +288,10 @@ public class MainPresenter extends MvpPresenter<MvpViewMain> {
         mainActivity.registerReceiver(notificationClick, filter);
 
         IntentFilter intentFilter = new IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE);
-        downloadcomplete =new
+        downloadcomplete = new
                 BroadcastReceiver() {
                     @Override
-                    public void onReceive (Context context, Intent intent){
+                    public void onReceive(Context context, Intent intent) {
                         long r = intent.getLongExtra(DownloadManager.EXTRA_DOWNLOAD_ID, -1);
                         if (refer == r) {
                             DownloadManager.Query query = new DownloadManager.Query();

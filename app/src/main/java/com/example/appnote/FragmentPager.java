@@ -14,7 +14,6 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
-import android.widget.Toast;
 
 import com.google.android.exoplayer2.ExoPlaybackException;
 import com.google.android.exoplayer2.ExoPlayerFactory;
@@ -41,18 +40,16 @@ import com.google.android.exoplayer2.util.Util;
 import com.squareup.picasso.Picasso;
 
 import java.io.FileInputStream;
-import java.util.Timer;
 
 public class FragmentPager extends Fragment {
 
-
     private final static String KEY="image";
 
-    public static FragmentPager newInstanse(String s,boolean isImg, int page, boolean isOnline){
+    public static FragmentPager newInstance(String url, int type, int page, boolean isOnline){
         Bundle bundle = new Bundle();
-        bundle.putString(KEY, s);
+        bundle.putString(KEY, url);
         bundle.putInt("PAGE", page);
-        bundle.putBoolean("Image", isImg);
+        bundle.putInt("Image", type);
         bundle.putBoolean("online", isOnline);
         FragmentPager fragmentPager = new FragmentPager();
         fragmentPager.setArguments(bundle);
@@ -81,7 +78,7 @@ public class FragmentPager extends Fragment {
         page = getArguments().getInt("PAGE");
         pb = v.findViewById(R.id.progressBar);
 
-        if(!getArguments().getBoolean("Image")) {
+        if(getArguments().getInt("Image") != 0) {
             if(getArguments().getBoolean("online")) {
                 initializePlayer();
                 if (page == 0) startPlayer();
@@ -91,7 +88,10 @@ public class FragmentPager extends Fragment {
             }
         }else {
             playerView.setVisibility(View.INVISIBLE);
-            imageView.setImageBitmap(loadImageBitmap(getContext().getApplicationContext(), getArguments().getString(KEY)));
+            Picasso.get()
+                    .load(getArguments().getString(KEY))
+                    .into(imageView);
+//            imageView.setImageBitmap(loadImageBitmap(getContext().getApplicationContext(), getArguments().getString(KEY)));
         }
 
         return v;
@@ -150,7 +150,7 @@ public class FragmentPager extends Fragment {
         ExtractorsFactory extractorsFactory = new DefaultExtractorsFactory();
 
         // This is the MediaSource representing the media to be played.
-        Uri videoUri = Uri.parse("https://ia800208.us.archive.org/4/items/Popeye_forPresident/Popeye_forPresident_512kb.mp4");
+        Uri videoUri = Uri.parse("https://videos1.ochepyatki.ru/53122/video_53122.mp4");
         MediaSource videoSource = new ExtractorMediaSource(videoUri,
                 dataSourceFactory, extractorsFactory, null, null);
 
@@ -194,7 +194,7 @@ public class FragmentPager extends Fragment {
 
                 if(playbackState == Player.STATE_ENDED){
                     if(b==0) {
-                        ((MainActivity) getActivity()).pageSwitcher(2500, true);
+                        ((MainActivity) getActivity()).pageSwitcher(5000, true);
                         a=0;
                         b++;
                         mediaPlayer.seekTo(0);

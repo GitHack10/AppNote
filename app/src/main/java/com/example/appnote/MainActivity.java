@@ -1,14 +1,8 @@
 package com.example.appnote;
 
-import android.app.DownloadManager;
 import android.app.ProgressDialog;
-import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
-import android.content.IntentFilter;
-import android.database.Cursor;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.net.ConnectivityManager;
 import android.net.Uri;
 import android.os.AsyncTask;
@@ -16,7 +10,6 @@ import android.os.Build;
 import android.os.Environment;
 import android.provider.Settings;
 import android.support.v4.view.ViewPager;
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.MotionEvent;
@@ -24,30 +17,24 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
 import android.view.WindowManager;
-import android.widget.Button;
-import android.widget.Toast;
 
-import com.arellomobile.mvp.MvpActivity;
 import com.arellomobile.mvp.MvpAppCompatActivity;
-import com.arellomobile.mvp.MvpView;
 import com.arellomobile.mvp.presenter.InjectPresenter;
 import com.arellomobile.mvp.presenter.ProvidePresenter;
-import com.example.appnote.model.Load;
+import com.example.appnote.model.Media;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
-import java.sql.Time;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
 
-public class MainActivity extends MvpAppCompatActivity implements MvpViewMain {
+public class MainActivity extends MvpAppCompatActivity implements MainView {
 
     public static int ACTION_MANAGE_OVERLAY_PERMISSION_REQUEST_CODE = 5469;
 
@@ -56,7 +43,7 @@ public class MainActivity extends MvpAppCompatActivity implements MvpViewMain {
 
     @ProvidePresenter
     MainPresenter mainPresenter(){
-        return new MainPresenter(this);
+        return new MainPresenter(this, App.getDataManager());
     }
 
     PagerAdapter pager;
@@ -73,10 +60,8 @@ public class MainActivity extends MvpAppCompatActivity implements MvpViewMain {
         super.onCreate(savedInstanceState);
         requestWindowFeature(Window.FEATURE_NO_TITLE);
         setContentView(R.layout.activity_main);
-
-
+//        lockTouchScreen();
         timer = new Timer();
-
         viewPager = findViewById(R.id.viewPager);
 
       /*  if(isOnline()){
@@ -84,8 +69,6 @@ public class MainActivity extends MvpAppCompatActivity implements MvpViewMain {
                 deleteImage(getApplicationContext(),list.get(i).getName());
             }
         }*/
-
-
 
        /* DownloadVideo video = new DownloadVideo();
         video.execute("");*/
@@ -101,19 +84,16 @@ public class MainActivity extends MvpAppCompatActivity implements MvpViewMain {
 
         //удаляем кешированные файлы при новом подключении
 
-        View v = viewPager;
-        //блокировка касания
-        v.setOnTouchListener(new View.OnTouchListener() {
-            @Override
-            public boolean onTouch(View v, MotionEvent event) {
-                return true;
-            }
-        });
-
-
+//        View v = viewPager;
+//        //блокировка касания
+//        v.setOnTouchListener(new View.OnTouchListener() {
+//            @Override
+//            public boolean onTouch(View v, MotionEvent event) {
+//                return true;
+//            }
+//        });
 
         Uri uri = Uri.parse(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS).getAbsolutePath());
-
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 
         viewPager.addOnPageChangeListener(new ViewPager.OnPageChangeListener() {
@@ -145,6 +125,11 @@ public class MainActivity extends MvpAppCompatActivity implements MvpViewMain {
         pageSwitcher(3000, true);
     }
 
+    // блокировка касания
+    private void lockTouchScreen() {
+        getWindow().setFlags(WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE,
+                WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE);
+    }
 
 //    public Bitmap loadImageBitmap(Context context, String imageName) {
 //        Bitmap bitmap = null;
@@ -162,9 +147,9 @@ public class MainActivity extends MvpAppCompatActivity implements MvpViewMain {
 //    }
 
     @Override
-    public void showImage(List<Load> list, boolean isOnline) {
-        for(int i=0;i<list.size();i++){
-            fragmentList.add(FragmentPager.newInstanse(list.get(i).getName(), list.get(i).isImage(), i, isOnline));
+    public void showImage(List<Media> list, boolean isOnline) {
+        for (int i = 0; i < list.size(); i++) {
+            fragmentList.add(FragmentPager.newInstance(list.get(i).getUrl(), list.get(i).getType(), i, isOnline));
         }
 
         pager = new PagerAdapter(getSupportFragmentManager(), fragmentList, page);
@@ -185,7 +170,7 @@ public class MainActivity extends MvpAppCompatActivity implements MvpViewMain {
         public void run() {
             runOnUiThread(new Runnable() {
                 public void run() {
-                    if (pageScroll == 5) {
+                    if (pageScroll == fragmentList.size()) {
                         pageScroll=0;
                         viewPager.setCurrentItem(pageScroll);
                     } else {
@@ -268,9 +253,9 @@ public class MainActivity extends MvpAppCompatActivity implements MvpViewMain {
                         | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY);
     }
 
-    public static class customViewGroup extends ViewGroup {
+    public static class CustomViewGroup extends ViewGroup {
 
-        public customViewGroup(Context context) {
+        public CustomViewGroup(Context context) {
             super(context);
         }
 
@@ -305,7 +290,7 @@ public class MainActivity extends MvpAppCompatActivity implements MvpViewMain {
                 .getDisplayMetrics().scaledDensity);
         localLayoutParams.format = PixelFormat.TRANSPARENT;
 
-        customViewGroup view = new customViewGroup(this);
+        CustomViewGroup view = new CustomViewGroup(this);
 
         manager.addView(view, localLayoutParams);*/
     }
@@ -333,7 +318,6 @@ public class MainActivity extends MvpAppCompatActivity implements MvpViewMain {
 
     @Override
     public void onBackPressed() {
+        // disable backPressed
     }
 }
-
-//Kotlin говно
