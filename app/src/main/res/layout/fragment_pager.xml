@@ -13,11 +13,8 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent">
+        app:layout_constraintTop_toTopOf="parent"/>
         <!--app:use_controller="false"-->
-
-
-    </com.google.android.exoplayer2.ui.PlayerView>
 
     <ProgressBar
         android:id="@+id/progressBar"
@@ -39,7 +36,19 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:srcCompat="@drawable/ic_launcher_background"
+        tools:srcCompat="@drawable/ic_launcher_background"
         tools:ignore="VectorDrawableCompat" />
+
+    <TextView
+        android:id="@+id/TextView_pager_text"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:background="@color/colorTextBackground"
+        android:padding="14dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        android:textSize="28sp"
+        android:textColor="@color/colorTextWhite"
+        tools:text="Text contact"/>
 
 </android.support.constraint.ConstraintLayout>

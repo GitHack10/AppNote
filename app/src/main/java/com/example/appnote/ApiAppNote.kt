@@ -7,5 +7,5 @@ import retrofit2.http.GET
 interface ApiAppNote {
 
     @GET("/test.json")
-    fun getMedia(): Call<List<Media>>
+    fun getMedia(): Call<Media>
 }

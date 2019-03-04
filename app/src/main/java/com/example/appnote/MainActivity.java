@@ -65,8 +65,8 @@ public class MainActivity extends MvpAppCompatActivity implements MainView {
         viewPager = findViewById(R.id.viewPager);
 
       /*  if(isOnline()){
-            for(int i=0; i<list.size();i++) {
-                deleteImage(getApplicationContext(),list.get(i).getName());
+            for(int i=0; i<media.size();i++) {
+                deleteImage(getApplicationContext(),media.get(i).getName());
             }
         }*/
 
@@ -84,14 +84,14 @@ public class MainActivity extends MvpAppCompatActivity implements MainView {
 
         //удаляем кешированные файлы при новом подключении
 
-//        View v = viewPager;
-//        //блокировка касания
-//        v.setOnTouchListener(new View.OnTouchListener() {
-//            @Override
-//            public boolean onTouch(View v, MotionEvent event) {
-//                return true;
-//            }
-//        });
+        View v = viewPager;
+        //блокировка касания
+        v.setOnTouchListener(new View.OnTouchListener() {
+            @Override
+            public boolean onTouch(View v, MotionEvent event) {
+                return true;
+            }
+        });
 
         Uri uri = Uri.parse(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS).getAbsolutePath());
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
@@ -147,9 +147,9 @@ public class MainActivity extends MvpAppCompatActivity implements MainView {
 //    }
 
     @Override
-    public void showImage(List<Media> list, boolean isOnline) {
-        for (int i = 0; i < list.size(); i++) {
-            fragmentList.add(FragmentPager.newInstance(list.get(i).getUrl(), list.get(i).getType(), i, isOnline));
+    public void showImage(Media media, boolean isOnline) {
+        for (int i = 0; i < media.getDataList().size(); i++) {
+            fragmentList.add(FragmentPager.newInstance(media.getText(), media.getDataList().get(i).getUrl(), media.getDataList().get(i).getType(), i, isOnline));
         }
 
         pager = new PagerAdapter(getSupportFragmentManager(), fragmentList, page);

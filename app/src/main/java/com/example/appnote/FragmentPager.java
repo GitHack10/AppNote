@@ -14,6 +14,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
+import android.widget.TextView;
 
 import com.google.android.exoplayer2.ExoPlaybackException;
 import com.google.android.exoplayer2.ExoPlayerFactory;
@@ -43,11 +44,13 @@ import java.io.FileInputStream;
 
 public class FragmentPager extends Fragment {
 
-    private final static String KEY="image";
+    private final static String TEXT = "text";
+    private final static String IMAGE = "image";
 
-    public static FragmentPager newInstance(String url, int type, int page, boolean isOnline){
+    public static FragmentPager newInstance(String text, String url, int type, int page, boolean isOnline){
         Bundle bundle = new Bundle();
-        bundle.putString(KEY, url);
+        bundle.putString(TEXT, text);
+        bundle.putString(IMAGE, url);
         bundle.putInt("PAGE", page);
         bundle.putInt("Image", type);
         bundle.putBoolean("online", isOnline);
@@ -64,6 +67,7 @@ public class FragmentPager extends Fragment {
 
     PlayerView playerView;
     ImageView imageView;
+    TextView pagerTextView;
     SimpleExoPlayer mediaPlayer;
     int page;
     ProgressBar pb;
@@ -71,13 +75,15 @@ public class FragmentPager extends Fragment {
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        View v = inflater.inflate(R.layout.fragment_pager, null);
+        View view = inflater.inflate(R.layout.fragment_pager, null);
 
-        imageView = v.findViewById(R.id.imageView);
-        playerView = v.findViewById(R.id.playerView);
+        imageView = view.findViewById(R.id.imageView);
+        playerView = view.findViewById(R.id.playerView);
+        pagerTextView = view.findViewById(R.id.TextView_pager_text);
         page = getArguments().getInt("PAGE");
-        pb = v.findViewById(R.id.progressBar);
+        pb = view.findViewById(R.id.progressBar);
 
+        pagerTextView.setText(getArguments().getString(TEXT));
         if(getArguments().getInt("Image") != 0) {
             if(getArguments().getBoolean("online")) {
                 initializePlayer();
@@ -89,12 +95,12 @@ public class FragmentPager extends Fragment {
         }else {
             playerView.setVisibility(View.INVISIBLE);
             Picasso.get()
-                    .load(getArguments().getString(KEY))
+                    .load(getArguments().getString(IMAGE))
                     .into(imageView);
 //            imageView.setImageBitmap(loadImageBitmap(getContext().getApplicationContext(), getArguments().getString(KEY)));
         }
 
-        return v;
+        return view;
     }
 
     public Bitmap loadImageBitmap(Context context, String imageName) {
