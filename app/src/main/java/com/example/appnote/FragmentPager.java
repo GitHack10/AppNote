@@ -128,7 +128,7 @@ public class FragmentPager extends Fragment {
 
             //позже проверить возвращаетли функция длину видео
             duration = mediaPlayer.getDuration();
-            Toast.makeText(getContext(), "duration: " + duration, Toast.LENGTH_SHORT).show();
+//            Toast.makeText(getContext(), "duration: " + duration, Toast.LENGTH_SHORT).show();
         }
     }
     public void stopPlayer(){
@@ -151,6 +151,7 @@ public class FragmentPager extends Fragment {
 
         //Initialize simpleExoPlayerView]
         playerView.setPlayer(mediaPlayer);
+//        playerView.setUseController(false);
 
         // Produces DataSource instances through which media data is loaded.
         DataSource.Factory dataSourceFactory =
@@ -207,6 +208,7 @@ public class FragmentPager extends Fragment {
                         ((MainActivity) getActivity()).pageSwitcher(5000, true);
                         a=0;
                         b++;
+                        mediaPlayer.setPlayWhenReady(false);
                         mediaPlayer.seekTo(0);
                     }
                 }

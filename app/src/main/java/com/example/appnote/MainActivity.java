@@ -105,6 +105,7 @@ public class MainActivity extends MvpAppCompatActivity implements MainView {
 
             @Override
             public void onPageSelected(int i) {
+                if (media.getDataList().get(i).getType() == 1) stopTimer();
                 pager.startPlayer(i);
                 pager.stopPlayer(page);
                 page=i;
@@ -148,10 +149,15 @@ public class MainActivity extends MvpAppCompatActivity implements MainView {
 //    }
 
     @Override
-    public void showImage(Media media, boolean isOnline) {
+    public void showMedia(Media media, boolean isOnline) {
         this.media = media;
         for (int i = 0; i < media.getDataList().size(); i++) {
-            fragmentList.add(FragmentPager.newInstance(media.getText(), media.getDataList().get(i).getUrl(), media.getDataList().get(i).getType(), i, isOnline));
+            fragmentList.add(FragmentPager.newInstance(
+                    media.getText(),
+                    media.getDataList().get(i).getUrl(),
+                    media.getDataList().get(i).getType(),
+                    i, isOnline)
+            );
         }
 
         pager = new PagerAdapter(getSupportFragmentManager(), fragmentList, page);

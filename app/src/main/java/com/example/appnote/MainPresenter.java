@@ -74,10 +74,11 @@ public class MainPresenter extends MvpPresenter<MainView> {
                         list = media.getDataList();
                     }
                     list.add(new Media.Data(1, "https://videos1.ochepyatki.ru/53122/video_53122.mp4", ""));
+                    list.add(new Media.Data(1, "https://videos1.ochepyatki.ru/53122/video_53122.mp4", ""));
                     for (int i = 0; i < list.size(); i++) {
                         list.get(i).setName("name" + (i+1));
                     }
-                    getViewState().showImage(media, true);
+                    getViewState().showMedia(media, true);
 //                    checkOnline();
                 }
             }
@@ -97,7 +98,7 @@ public class MainPresenter extends MvpPresenter<MainView> {
                         } else { }
                         mediaStr.setDataList(listStr);
                     }
-                    getViewState().showImage(mediaStr, false);
+                    getViewState().showMedia(mediaStr, false);
                 } catch (Exception e) {
                     //экран нет подключения к интернету
                 }
@@ -185,7 +186,7 @@ public class MainPresenter extends MvpPresenter<MainView> {
 //                listStr.get(i).setType(mSettings.getInt(i + "b", 0));
             }
             mediaStr.setDataList(listStr);
-            getViewState().showImage(mediaStr, true);
+            getViewState().showMedia(mediaStr, true);
         } else {
             try {
                 listStr = new ArrayList<>();
@@ -202,7 +203,7 @@ public class MainPresenter extends MvpPresenter<MainView> {
                     }
                 }
                 mediaStr.setDataList(listStr);
-                getViewState().showImage(mediaStr, false);
+                getViewState().showMedia(mediaStr, false);
             } catch (Exception e) {
                 //экран нет подключения к интернету
             }
