@@ -15,6 +15,7 @@ import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.google.android.exoplayer2.ExoPlaybackException;
 import com.google.android.exoplayer2.ExoPlayerFactory;
@@ -45,14 +46,16 @@ import java.io.FileInputStream;
 public class FragmentPager extends Fragment {
 
     private final static String TEXT = "text";
-    private final static String IMAGE = "image";
+    private final static String URL = "url";
+    private final static String TYPE = "type";
+    private long duration = 5000;
 
     public static FragmentPager newInstance(String text, String url, int type, int page, boolean isOnline){
         Bundle bundle = new Bundle();
         bundle.putString(TEXT, text);
-        bundle.putString(IMAGE, url);
+        bundle.putString(URL, url);
         bundle.putInt("PAGE", page);
-        bundle.putInt("Image", type);
+        bundle.putInt(TYPE, type);
         bundle.putBoolean("online", isOnline);
         FragmentPager fragmentPager = new FragmentPager();
         fragmentPager.setArguments(bundle);
@@ -84,9 +87,9 @@ public class FragmentPager extends Fragment {
         pb = view.findViewById(R.id.progressBar);
 
         pagerTextView.setText(getArguments().getString(TEXT));
-        if(getArguments().getInt("Image") != 0) {
+        if(getArguments().getInt(TYPE) == 1) {
             if(getArguments().getBoolean("online")) {
-                initializePlayer();
+                initializePlayer(getArguments().getString(URL));
                 if (page == 0) startPlayer();
                 imageView.setVisibility(View.INVISIBLE);
             }else {
@@ -95,7 +98,7 @@ public class FragmentPager extends Fragment {
         }else {
             playerView.setVisibility(View.INVISIBLE);
             Picasso.get()
-                    .load(getArguments().getString(IMAGE))
+                    .load(getArguments().getString(URL))
                     .into(imageView);
 //            imageView.setImageBitmap(loadImageBitmap(getContext().getApplicationContext(), getArguments().getString(KEY)));
         }
@@ -124,7 +127,8 @@ public class FragmentPager extends Fragment {
             mediaPlayer.setPlayWhenReady(true);
 
             //позже проверить возвращаетли функция длину видео
-            long a = mediaPlayer.getDuration();
+            duration = mediaPlayer.getDuration();
+            Toast.makeText(getContext(), "duration: " + duration, Toast.LENGTH_SHORT).show();
         }
     }
     public void stopPlayer(){
@@ -134,7 +138,7 @@ public class FragmentPager extends Fragment {
     }
 
 
-    private void initializePlayer(){
+    private void initializePlayer(String url){
         // Create a default TrackSelector
         BandwidthMeter bandwidthMeter = new DefaultBandwidthMeter();
         TrackSelection.Factory videoTrackSelectionFactory =
@@ -156,7 +160,7 @@ public class FragmentPager extends Fragment {
         ExtractorsFactory extractorsFactory = new DefaultExtractorsFactory();
 
         // This is the MediaSource representing the media to be played.
-        Uri videoUri = Uri.parse("https://videos1.ochepyatki.ru/53122/video_53122.mp4");
+        Uri videoUri = Uri.parse(url);
         MediaSource videoSource = new ExtractorMediaSource(videoUri,
                 dataSourceFactory, extractorsFactory, null, null);
 

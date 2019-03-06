@@ -73,6 +73,7 @@ public class MainPresenter extends MvpPresenter<MainView> {
                         media = response.body();
                         list = media.getDataList();
                     }
+                    list.add(new Media.Data(1, "https://videos1.ochepyatki.ru/53122/video_53122.mp4", ""));
                     for (int i = 0; i < list.size(); i++) {
                         list.get(i).setName("name" + (i+1));
                     }

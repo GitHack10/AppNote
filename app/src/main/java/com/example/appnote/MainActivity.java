@@ -54,6 +54,7 @@ public class MainActivity extends MvpAppCompatActivity implements MainView {
     int pageScroll = 0;
 
     List<FragmentPager> fragmentList = new ArrayList<>();
+    Media media;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -122,7 +123,7 @@ public class MainActivity extends MvpAppCompatActivity implements MainView {
             }
         });
 
-        pageSwitcher(3000, true);
+        pageSwitcher(5000, true);
     }
 
     // блокировка касания
@@ -148,6 +149,7 @@ public class MainActivity extends MvpAppCompatActivity implements MainView {
 
     @Override
     public void showImage(Media media, boolean isOnline) {
+        this.media = media;
         for (int i = 0; i < media.getDataList().size(); i++) {
             fragmentList.add(FragmentPager.newInstance(media.getText(), media.getDataList().get(i).getUrl(), media.getDataList().get(i).getType(), i, isOnline));
         }
@@ -244,13 +246,15 @@ public class MainActivity extends MvpAppCompatActivity implements MainView {
     protected void onResume() {
         super.onResume();
         //убираем границы экрана
-        getWindow().getDecorView().setSystemUiVisibility(
-                View.SYSTEM_UI_FLAG_LAYOUT_STABLE
-                        | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
-                        | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
-                        | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
-                        | View.SYSTEM_UI_FLAG_FULLSCREEN
-                        | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY);
+        fullScreenMode();
+    }
+
+    @Override
+    public void onWindowFocusChanged(boolean hasFocus) {
+        super.onWindowFocusChanged(hasFocus);
+        if (hasFocus) {
+            fullScreenMode();
+        }
     }
 
     public static class CustomViewGroup extends ViewGroup {
@@ -314,6 +318,16 @@ public class MainActivity extends MvpAppCompatActivity implements MainView {
                 startActivityForResult(intent, ACTION_MANAGE_OVERLAY_PERMISSION_REQUEST_CODE);
             }
         }
+    }
+
+    private void fullScreenMode() {
+        getWindow().getDecorView().setSystemUiVisibility(
+                View.SYSTEM_UI_FLAG_LAYOUT_STABLE
+                        | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
+                        | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
+                        | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
+                        | View.SYSTEM_UI_FLAG_FULLSCREEN
+                        | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY);
     }
 
     @Override
