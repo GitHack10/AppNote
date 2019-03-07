@@ -1,22 +1,18 @@
-package com.example.appnote;
+package com.example.appnote.presentation.ui;
 
-import android.content.Context;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
-import android.widget.Toast;
-
+import com.example.appnote.R;
+import com.example.appnote.presentation.CacheDataSourceFactory;
 import com.google.android.exoplayer2.ExoPlaybackException;
 import com.google.android.exoplayer2.ExoPlayerFactory;
 import com.google.android.exoplayer2.PlaybackParameters;
@@ -41,25 +37,23 @@ import com.google.android.exoplayer2.upstream.DefaultDataSourceFactory;
 import com.google.android.exoplayer2.util.Util;
 import com.squareup.picasso.Picasso;
 
-import java.io.FileInputStream;
-
-public class FragmentPager extends Fragment {
+public class SlideFragment extends Fragment {
 
     private final static String TEXT = "text";
     private final static String URL = "url";
     private final static String TYPE = "type";
     private long duration = 5000;
 
-    public static FragmentPager newInstance(String text, String url, int type, int page, boolean isOnline){
+    public static SlideFragment newInstance(String text, String url, int type, int page, boolean isOnline){
         Bundle bundle = new Bundle();
         bundle.putString(TEXT, text);
         bundle.putString(URL, url);
         bundle.putInt("PAGE", page);
         bundle.putInt(TYPE, type);
         bundle.putBoolean("online", isOnline);
-        FragmentPager fragmentPager = new FragmentPager();
-        fragmentPager.setArguments(bundle);
-        return fragmentPager;
+        SlideFragment slideFragment = new SlideFragment();
+        slideFragment.setArguments(bundle);
+        return slideFragment;
     }
 
     @Override
@@ -100,27 +94,10 @@ public class FragmentPager extends Fragment {
             Picasso.get()
                     .load(getArguments().getString(URL))
                     .into(imageView);
-//            imageView.setImageBitmap(loadImageBitmap(getContext().getApplicationContext(), getArguments().getString(KEY)));
         }
 
         return view;
     }
-
-    public Bitmap loadImageBitmap(Context context, String imageName) {
-        Bitmap bitmap = null;
-        FileInputStream fiStream;
-        try {
-            //  context.deleteFile(imageName);
-            fiStream    = context.openFileInput(imageName);
-            bitmap      = BitmapFactory.decodeStream(fiStream);
-            fiStream.close();
-        } catch (Exception e) {
-            Log.d("saveImage", "Exception 3, Something went wrong!");
-            e.printStackTrace();
-        }
-        return bitmap;
-    }
-
 
     public void startPlayer(){
         if(mediaPlayer!=null){
@@ -143,8 +120,7 @@ public class FragmentPager extends Fragment {
         BandwidthMeter bandwidthMeter = new DefaultBandwidthMeter();
         TrackSelection.Factory videoTrackSelectionFactory =
                 new AdaptiveTrackSelection.Factory(bandwidthMeter);
-        TrackSelector trackSelector =
-                new DefaultTrackSelector(videoTrackSelectionFactory);
+        TrackSelector trackSelector = new DefaultTrackSelector(videoTrackSelectionFactory);
 
         //Initialize the player
         mediaPlayer = ExoPlayerFactory.newSimpleInstance(getContext(), trackSelector);
@@ -164,6 +140,13 @@ public class FragmentPager extends Fragment {
         Uri videoUri = Uri.parse(url);
         MediaSource videoSource = new ExtractorMediaSource(videoUri,
                 dataSourceFactory, extractorsFactory, null, null);
+
+//        MediaSource videoSource = new ExtractorMediaSource(Uri.parse(url),
+//                new CacheDataSourceFactory(
+//                        getContext(),
+//                        200 * 1024 * 1024,
+//                        100 * 1024 * 1024
+//                ), new DefaultExtractorsFactory(), null, null);
 
         // Prepare the player with the source.
         mediaPlayer.prepare(videoSource);

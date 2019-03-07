@@ -1,4 +1,4 @@
-package com.example.appnote;
+package com.example.appnote.presentation.ui;
 
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
@@ -8,10 +8,10 @@ import java.util.List;
 
 public class PagerAdapter extends FragmentPagerAdapter {
 
-    List<FragmentPager> list;
-    FragmentPager fragmentPager;
+    List<SlideFragment> list;
     public int page;
-    public PagerAdapter(FragmentManager fm, List<FragmentPager> list, int page) {
+
+    public PagerAdapter(FragmentManager fm, List<SlideFragment> list, int page) {
         super(fm);
         this.list = list;
         this.page = page;

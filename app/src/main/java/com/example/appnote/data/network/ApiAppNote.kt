@@ -1,6 +1,6 @@
-package com.example.appnote
+package com.example.appnote.data.network
 
-import com.example.appnote.model.Media
+import com.example.appnote.domain.model.Media
 import retrofit2.Call
 import retrofit2.http.GET
 

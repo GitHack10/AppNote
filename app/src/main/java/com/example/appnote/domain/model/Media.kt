@@ -1,4 +1,4 @@
-package com.example.appnote.model
+package com.example.appnote.domain.model
 
 import android.os.Parcelable
 import com.google.gson.annotations.SerializedName

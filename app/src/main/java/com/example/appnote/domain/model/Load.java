@@ -1,4 +1,4 @@
-package com.example.appnote.model;
+package com.example.appnote.domain.model;
 
 public class Load {
     private String name;

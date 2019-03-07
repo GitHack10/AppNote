@@ -18,7 +18,7 @@
         android:supportsRtl="true"
         android:theme="@style/MyAppTheme"
         tools:ignore="GoogleAppIndexingWarning">
-        <activity android:name=".MainActivity"
+        <activity android:name=".presentation.ui.MainActivity"
             android:launchMode="singleTask"
             android:stateNotNeeded="true"
             android:exported="true"

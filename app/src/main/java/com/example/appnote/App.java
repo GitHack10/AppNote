@@ -1,6 +1,8 @@
 package com.example.appnote;
 
 import android.app.Application;
+import com.example.appnote.data.global.DataManager;
+import com.example.appnote.data.network.ApiAppNote;
 import okhttp3.Cache;
 import okhttp3.OkHttpClient;
 import okhttp3.logging.HttpLoggingInterceptor;
