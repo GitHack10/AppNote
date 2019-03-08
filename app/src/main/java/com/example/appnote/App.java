@@ -3,6 +3,9 @@ package com.example.appnote;
 import android.app.Application;
 import com.example.appnote.data.global.DataManager;
 import com.example.appnote.data.network.ApiAppNote;
+import com.example.appnote.data.network.interceptors.CacheInterceptor;
+import com.example.appnote.data.network.interceptors.OfflineCacheInterceptor;
+
 import okhttp3.Cache;
 import okhttp3.OkHttpClient;
 import okhttp3.logging.HttpLoggingInterceptor;
@@ -25,6 +28,8 @@ public class App extends Application {
 
         OkHttpClient okHttpClient = new OkHttpClient.Builder()
                 .addInterceptor(httpLoggingInterceptor)
+                .addInterceptor(new OfflineCacheInterceptor(getApplicationContext()))
+                .addNetworkInterceptor(new CacheInterceptor())
                 .cache(new Cache(getApplicationContext().getCacheDir(), cacheSize))
                 .build();
 
