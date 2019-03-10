@@ -8,6 +8,8 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
+import android.widget.Toast;
+
 import com.arellomobile.mvp.MvpAppCompatActivity;
 import com.arellomobile.mvp.presenter.InjectPresenter;
 import com.arellomobile.mvp.presenter.ProvidePresenter;
@@ -115,8 +117,12 @@ public class MainActivity extends MvpAppCompatActivity implements MainView {
         }
 
         pager = new PagerAdapter(getSupportFragmentManager(), fragmentList, page);
-        viewPager.setOffscreenPageLimit(8);
         viewPager.setAdapter(pager);
+    }
+
+    @Override
+    public void showNoNetwork(String message) {
+        Toast.makeText(this, message, Toast.LENGTH_LONG).show();
     }
 
     boolean dtch=true;

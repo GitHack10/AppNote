@@ -5,16 +5,22 @@ import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
+
+import com.danikula.videocache.CacheListener;
+import com.danikula.videocache.HttpProxyCacheServer;
+import com.example.appnote.App;
 import com.example.appnote.R;
-import com.example.appnote.presentation.CacheDataSourceFactory;
+import com.google.android.exoplayer2.DefaultLoadControl;
 import com.google.android.exoplayer2.ExoPlaybackException;
 import com.google.android.exoplayer2.ExoPlayerFactory;
+import com.google.android.exoplayer2.LoadControl;
 import com.google.android.exoplayer2.PlaybackParameters;
 import com.google.android.exoplayer2.Player;
 import com.google.android.exoplayer2.SimpleExoPlayer;
@@ -37,12 +43,16 @@ import com.google.android.exoplayer2.upstream.DefaultDataSourceFactory;
 import com.google.android.exoplayer2.util.Util;
 import com.squareup.picasso.Picasso;
 
-public class SlideFragment extends Fragment {
+import java.io.File;
 
+public class SlideFragment extends Fragment implements CacheListener {
+
+    private static final String LOG_TAG = "SlideFragment";
     private final static String TEXT = "text";
     private final static String URL = "url";
     private final static String TYPE = "type";
     private long duration = 5000;
+    int page;
 
     public static SlideFragment newInstance(String text, String url, int type, int page, boolean isOnline){
         Bundle bundle = new Bundle();
@@ -66,37 +76,53 @@ public class SlideFragment extends Fragment {
     ImageView imageView;
     TextView pagerTextView;
     SimpleExoPlayer mediaPlayer;
-    int page;
-    ProgressBar pb;
+    ProgressBar progressBar;
 
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        View view = inflater.inflate(R.layout.fragment_pager, null);
+        return inflater.inflate(R.layout.fragment_pager, null);
+    }
 
+    @Override
+    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
+        initViews(view);
+        showMedia();
+    }
+
+    private void initViews(View view) {
         imageView = view.findViewById(R.id.imageView);
         playerView = view.findViewById(R.id.playerView);
         pagerTextView = view.findViewById(R.id.TextView_pager_text);
-        page = getArguments().getInt("PAGE");
-        pb = view.findViewById(R.id.progressBar);
+        progressBar = view.findViewById(R.id.progressBar);
+    }
 
+    private void showMedia() {
+        page = getArguments().getInt("PAGE");
         pagerTextView.setText(getArguments().getString(TEXT));
-        if(getArguments().getInt(TYPE) == 1) {
-            if(getArguments().getBoolean("online")) {
-                initializePlayer(getArguments().getString(URL));
-                if (page == 0) startPlayer();
-                imageView.setVisibility(View.INVISIBLE);
-            }else {
-                //чтение файла из сохраненки
-            }
-        }else {
+        if(getArguments().getInt(TYPE) == 1 && getArguments().getBoolean("online")) {
+            initializePlayer(getArguments().getString(URL));
+            if (page == 0) startPlayer();
+            imageView.setVisibility(View.INVISIBLE);
+        } else {
             playerView.setVisibility(View.INVISIBLE);
             Picasso.get()
                     .load(getArguments().getString(URL))
                     .into(imageView);
         }
+    }
 
-        return view;
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        mediaPlayer.release();
+        App.getProxy(getActivity()).unregisterCacheListener(this);
+    }
+
+    @Override
+    public void onCacheAvailable(File cacheFile, String url, int percentsAvailable) {
+        progressBar.setSecondaryProgress(percentsAvailable);
+        Log.d(LOG_TAG, String.format("onCacheAvailable. percents: %d, file: %s, url: %s", percentsAvailable, cacheFile, url));
     }
 
     public void startPlayer(){
@@ -105,7 +131,6 @@ public class SlideFragment extends Fragment {
 
             //позже проверить возвращаетли функция длину видео
             duration = mediaPlayer.getDuration();
-//            Toast.makeText(getContext(), "duration: " + duration, Toast.LENGTH_SHORT).show();
         }
     }
     public void stopPlayer(){
@@ -114,41 +139,20 @@ public class SlideFragment extends Fragment {
         }
     }
 
-
     private void initializePlayer(String url){
-        // Create a default TrackSelector
-        BandwidthMeter bandwidthMeter = new DefaultBandwidthMeter();
-        TrackSelection.Factory videoTrackSelectionFactory =
-                new AdaptiveTrackSelection.Factory(bandwidthMeter);
-        TrackSelector trackSelector = new DefaultTrackSelector(videoTrackSelectionFactory);
 
         //Initialize the player
-        mediaPlayer = ExoPlayerFactory.newSimpleInstance(getContext(), trackSelector);
+        mediaPlayer = newSimpleExoPlayer();
+        HttpProxyCacheServer proxy = App.getProxy(getActivity());
+        proxy.registerCacheListener(this, url);
+        String proxyUrl = proxy.getProxyUrl(url);
+        Log.d(LOG_TAG, "Use proxy url " + proxyUrl + " instead of original url " + url);
 
         //Initialize simpleExoPlayerView]
         playerView.setPlayer(mediaPlayer);
-//        playerView.setUseController(false);
-
-        // Produces DataSource instances through which media data is loaded.
-        DataSource.Factory dataSourceFactory =
-                new DefaultDataSourceFactory(getContext(), Util.getUserAgent(getContext(), "CloudinaryExoplayer"));
-
-        // Produces Extractor instances for parsing the media data..
-        ExtractorsFactory extractorsFactory = new DefaultExtractorsFactory();
-
-        // This is the MediaSource representing the media to be played.
-        Uri videoUri = Uri.parse(url);
-        MediaSource videoSource = new ExtractorMediaSource(videoUri,
-                dataSourceFactory, extractorsFactory, null, null);
-
-//        MediaSource videoSource = new ExtractorMediaSource(Uri.parse(url),
-//                new CacheDataSourceFactory(
-//                        getContext(),
-//                        200 * 1024 * 1024,
-//                        100 * 1024 * 1024
-//                ), new DefaultExtractorsFactory(), null, null);
 
         // Prepare the player with the source.
+        MediaSource videoSource = newVideoSource(proxyUrl);
         mediaPlayer.prepare(videoSource);
 
         mediaPlayer.addListener(new Player.EventListener() {
@@ -180,10 +184,10 @@ public class SlideFragment extends Fragment {
                 }
 
                 if(playbackState==Player.STATE_BUFFERING){
-                    pb.setVisibility(View.VISIBLE);
+                    progressBar.setVisibility(View.VISIBLE);
 
                 }else {
-                    pb.setVisibility(View.INVISIBLE);
+                    progressBar.setVisibility(View.INVISIBLE);
                 }
 
                 if(playbackState == Player.STATE_ENDED){
@@ -227,5 +231,23 @@ public class SlideFragment extends Fragment {
 
             }
         });
+    }
+
+    // Create a default TrackSelector
+    private SimpleExoPlayer newSimpleExoPlayer() {
+        BandwidthMeter bandwidthMeter = new DefaultBandwidthMeter();
+        TrackSelection.Factory videoTrackSelectionFactory = new AdaptiveTrackSelection.Factory(bandwidthMeter);
+        TrackSelector trackSelector = new DefaultTrackSelector(videoTrackSelectionFactory);
+        LoadControl loadControl = new DefaultLoadControl();
+        return ExoPlayerFactory.newSimpleInstance(getActivity(), trackSelector, loadControl);
+    }
+
+    // This is the MediaSource representing the media to be played.
+    private MediaSource newVideoSource(String url) {
+        DefaultBandwidthMeter bandwidthMeter = new DefaultBandwidthMeter();
+        String userAgent = Util.getUserAgent(getActivity(), "AndroidVideoCache appnote");
+        DataSource.Factory dataSourceFactory = new DefaultDataSourceFactory(getActivity(), userAgent, bandwidthMeter);
+        ExtractorsFactory extractorsFactory = new DefaultExtractorsFactory();
+        return new ExtractorMediaSource(Uri.parse(url), dataSourceFactory, extractorsFactory, null, null);
     }
 }

@@ -1,6 +1,9 @@
 package com.example.appnote;
 
 import android.app.Application;
+import android.content.Context;
+
+import com.danikula.videocache.HttpProxyCacheServer;
 import com.example.appnote.data.global.DataManager;
 import com.example.appnote.data.network.ApiAppNote;
 import com.example.appnote.data.network.interceptors.CacheInterceptor;
@@ -16,6 +19,7 @@ public class App extends Application {
 
     private static final String BASE_URL = "http://plashet.diitcenter.ru";
     private static DataManager dataManager;
+    private HttpProxyCacheServer proxy;
 
     @Override
     public void onCreate() {
@@ -46,5 +50,16 @@ public class App extends Application {
 
     public static DataManager getDataManager() {
         return dataManager;
+    }
+
+    public static HttpProxyCacheServer getProxy(Context context) {
+        App app = (App) context.getApplicationContext();
+        return app.proxy == null ? (app.proxy = app.newProxy()) : app.proxy;
+    }
+
+    private HttpProxyCacheServer newProxy() {
+        return new HttpProxyCacheServer.Builder(this)
+                .cacheDirectory(UtilsKt.getVideoCacheDir(this))
+                .build();
     }
 }

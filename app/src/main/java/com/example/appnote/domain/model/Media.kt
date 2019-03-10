@@ -13,7 +13,7 @@ data class Media(
     @Parcelize
     data class Data(
         @SerializedName("type") val type: Int,
-        @SerializedName("url") val url: String,
+        @SerializedName("url") var url: String,
         var name: String = ""
     ): Parcelable
 }
