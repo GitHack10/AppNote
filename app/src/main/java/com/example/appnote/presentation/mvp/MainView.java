@@ -8,4 +8,6 @@ public interface MainView extends MvpView {
     void showMedia(Media media, boolean isOnline);
 
     void showNoNetwork(String message);
+
+    void showProgress(boolean show);
 }

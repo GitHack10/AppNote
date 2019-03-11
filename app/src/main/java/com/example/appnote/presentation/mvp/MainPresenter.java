@@ -40,8 +40,9 @@ public class MainPresenter extends MvpPresenter<MainView> {
         load();
     }
 
-    private void load() {
+    public void load() {
 
+        getViewState().showProgress(true);
         dataManager.getAllMedia().enqueue(new Callback<Media>() {
             @Override
             public void onResponse(@NotNull Call<Media> call, @NotNull Response<Media> response) {
@@ -57,6 +58,7 @@ public class MainPresenter extends MvpPresenter<MainView> {
                         }
                         list.get(i).setName("name" + (i+1));
                     }
+                    getViewState().showProgress(false);
                     getViewState().showMedia(media, true);
 //                    checkOnline();
                 }
@@ -79,6 +81,7 @@ public class MainPresenter extends MvpPresenter<MainView> {
 //                    }
 //                    getViewState().showMedia(mediaStr, false);
 //                } catch (Exception e) {
+                    getViewState().showProgress(false);
                     getViewState().showNoNetwork("Нет подключения к интернету");
 //                }
             }

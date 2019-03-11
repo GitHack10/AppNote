@@ -50,17 +50,18 @@ public class SlideFragment extends Fragment implements CacheListener {
     private static final String LOG_TAG = "SlideFragment";
     private final static String TEXT = "text";
     private final static String URL = "url";
+    private final static String PAGE = "page";
     private final static String TYPE = "type";
-    private long duration = 5000;
+    private final static String IS_ONLINE = "online";
     int page;
 
     public static SlideFragment newInstance(String text, String url, int type, int page, boolean isOnline){
         Bundle bundle = new Bundle();
         bundle.putString(TEXT, text);
         bundle.putString(URL, url);
-        bundle.putInt("PAGE", page);
+        bundle.putInt(PAGE, page);
         bundle.putInt(TYPE, type);
-        bundle.putBoolean("online", isOnline);
+        bundle.putBoolean(IS_ONLINE, isOnline);
         SlideFragment slideFragment = new SlideFragment();
         slideFragment.setArguments(bundle);
         return slideFragment;
@@ -98,9 +99,9 @@ public class SlideFragment extends Fragment implements CacheListener {
     }
 
     private void showMedia() {
-        page = getArguments().getInt("PAGE");
+        page = getArguments().getInt(PAGE);
         pagerTextView.setText(getArguments().getString(TEXT));
-        if(getArguments().getInt(TYPE) == 1 && getArguments().getBoolean("online")) {
+        if(getArguments().getInt(TYPE) == 1 && getArguments().getBoolean(IS_ONLINE)) {
             initializePlayer(getArguments().getString(URL));
             if (page == 0) startPlayer();
             imageView.setVisibility(View.INVISIBLE);
@@ -126,17 +127,11 @@ public class SlideFragment extends Fragment implements CacheListener {
     }
 
     public void startPlayer(){
-        if(mediaPlayer!=null){
-            mediaPlayer.setPlayWhenReady(true);
-
-            //позже проверить возвращаетли функция длину видео
-            duration = mediaPlayer.getDuration();
-        }
+        if(mediaPlayer!=null) mediaPlayer.setPlayWhenReady(true);
     }
+
     public void stopPlayer(){
-        if (mediaPlayer!=null) {
-            mediaPlayer.setPlayWhenReady(false);
-        }
+        if (mediaPlayer!=null) mediaPlayer.setPlayWhenReady(false);
     }
 
     private void initializePlayer(String url){
@@ -183,12 +178,7 @@ public class SlideFragment extends Fragment implements CacheListener {
                     }
                 }
 
-                if(playbackState==Player.STATE_BUFFERING){
-                    progressBar.setVisibility(View.VISIBLE);
-
-                }else {
-                    progressBar.setVisibility(View.INVISIBLE);
-                }
+                progressBar.setVisibility(playbackState==Player.STATE_BUFFERING ? View.VISIBLE : View.INVISIBLE);
 
                 if(playbackState == Player.STATE_ENDED){
                     if(b==0) {

@@ -1,15 +1,13 @@
 package com.example.appnote.presentation.ui;
 
-import android.net.Uri;
-import android.os.Environment;
 import android.support.v4.view.ViewPager;
 import android.os.Bundle;
-import android.view.MotionEvent;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
+import android.widget.Button;
+import android.widget.ProgressBar;
 import android.widget.Toast;
-
 import com.arellomobile.mvp.MvpAppCompatActivity;
 import com.arellomobile.mvp.presenter.InjectPresenter;
 import com.arellomobile.mvp.presenter.ProvidePresenter;
@@ -25,8 +23,6 @@ import java.util.TimerTask;
 
 public class MainActivity extends MvpAppCompatActivity implements MainView {
 
-    public static int ACTION_MANAGE_OVERLAY_PERMISSION_REQUEST_CODE = 5469;
-
     @InjectPresenter
     MainPresenter mainPresenter;
 
@@ -37,6 +33,8 @@ public class MainActivity extends MvpAppCompatActivity implements MainView {
 
     PagerAdapter pager;
     ViewPager viewPager;
+    Button tryAgainButton;
+    ProgressBar progressBar;
     int page=0;
 
     Timer timer;
@@ -50,23 +48,14 @@ public class MainActivity extends MvpAppCompatActivity implements MainView {
         super.onCreate(savedInstanceState);
         requestWindowFeature(Window.FEATURE_NO_TITLE);
         setContentView(R.layout.activity_main);
-//        lockTouchScreen();
         timer = new Timer();
         viewPager = findViewById(R.id.viewPager);
-
-      //удаляем кешированные файлы при новом подключении
-
+        tryAgainButton = findViewById(R.id.Button_main_tryAgain);
+        progressBar = findViewById(R.id.ProgressBar_main_progress);
         View v = viewPager;
-        //блокировка касания
-        v.setOnTouchListener(new View.OnTouchListener() {
-            @Override
-            public boolean onTouch(View v, MotionEvent event) {
-                return true;
-            }
-        });
 
-        Uri uri = Uri.parse(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS).getAbsolutePath());
-        getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+        //блокировка касания
+        viewPager.beginFakeDrag();
 
         viewPager.addOnPageChangeListener(new ViewPager.OnPageChangeListener() {
             @Override
@@ -94,7 +83,6 @@ public class MainActivity extends MvpAppCompatActivity implements MainView {
 
             }
         });
-
         pageSwitcher(5000, true);
     }
 
@@ -106,6 +94,7 @@ public class MainActivity extends MvpAppCompatActivity implements MainView {
 
     @Override
     public void showMedia(Media media, boolean isOnline) {
+        tryAgainButton.setVisibility(View.GONE);
         this.media = media;
         for (int i = 0; i < media.getDataList().size(); i++) {
             fragmentList.add(SlideFragment.newInstance(
@@ -122,7 +111,19 @@ public class MainActivity extends MvpAppCompatActivity implements MainView {
 
     @Override
     public void showNoNetwork(String message) {
-        Toast.makeText(this, message, Toast.LENGTH_LONG).show();
+        Toast myToast = Toast.makeText(this, message, Toast.LENGTH_SHORT);
+        myToast.show();
+        tryAgainButton.setVisibility(View.VISIBLE);
+        tryAgainButton.setOnClickListener((View v) -> {
+            tryAgainButton.setVisibility(View.GONE);
+            myToast.cancel();
+            mainPresenter.load();
+        });
+    }
+
+    @Override
+    public void showProgress(boolean show) {
+        progressBar.setVisibility(show ? View.VISIBLE : View.INVISIBLE);
     }
 
     boolean dtch=true;
@@ -136,18 +137,15 @@ public class MainActivity extends MvpAppCompatActivity implements MainView {
 
         @Override
         public void run() {
-            runOnUiThread(new Runnable() {
-                public void run() {
-                    if (pageScroll == fragmentList.size()) {
-                        pageScroll=0;
-                        viewPager.setCurrentItem(pageScroll);
-                    } else {
-                        viewPager.setCurrentItem(pageScroll);
-                        if(dtch) pageScroll++;
-                    }
+            runOnUiThread(() -> {
+                if (pageScroll == fragmentList.size()) {
+                    pageScroll=0;
+                    viewPager.setCurrentItem(pageScroll);
+                } else {
+                    viewPager.setCurrentItem(pageScroll);
+                    if(dtch) pageScroll++;
                 }
             });
-
         }
     }
 
