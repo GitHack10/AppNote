@@ -29,7 +29,7 @@ private fun cleanDirectory(file: File) {
 
 @Throws(IOException::class)
 private fun delete(file: File) {
-    if (file.isFile() && file.exists()) {
+    if (file.isFile && file.exists()) {
         deleteOrThrow(file)
     } else {
         cleanDirectory(file)

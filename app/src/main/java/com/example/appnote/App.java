@@ -25,7 +25,7 @@ public class App extends Application {
     public void onCreate() {
         super.onCreate();
 
-        long cacheSize = 50 * 1024 * 1024; // 50 MiB
+        long cacheSize = 100 * 1024 * 1024; // 100 MiB
 
         HttpLoggingInterceptor httpLoggingInterceptor = new HttpLoggingInterceptor();
         httpLoggingInterceptor.setLevel(HttpLoggingInterceptor.Level.BASIC);

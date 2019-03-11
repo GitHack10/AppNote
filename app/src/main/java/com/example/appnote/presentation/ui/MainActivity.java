@@ -4,7 +4,6 @@ import android.support.v4.view.ViewPager;
 import android.os.Bundle;
 import android.view.View;
 import android.view.Window;
-import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.ProgressBar;
 import android.widget.Toast;
@@ -12,10 +11,13 @@ import com.arellomobile.mvp.MvpAppCompatActivity;
 import com.arellomobile.mvp.presenter.InjectPresenter;
 import com.arellomobile.mvp.presenter.ProvidePresenter;
 import com.example.appnote.App;
+import com.example.appnote.UtilsKt;
+import com.example.appnote.presentation.CustomViewPager;
 import com.example.appnote.presentation.mvp.MainPresenter;
 import com.example.appnote.presentation.mvp.MainView;
 import com.example.appnote.R;
 import com.example.appnote.domain.model.Media;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Timer;
@@ -32,7 +34,7 @@ public class MainActivity extends MvpAppCompatActivity implements MainView {
     }
 
     PagerAdapter pager;
-    ViewPager viewPager;
+    CustomViewPager viewPager;
     Button tryAgainButton;
     ProgressBar progressBar;
     int page=0;
@@ -55,7 +57,7 @@ public class MainActivity extends MvpAppCompatActivity implements MainView {
         View v = viewPager;
 
         //блокировка касания
-        viewPager.beginFakeDrag();
+        viewPager.disableScroll(true);
 
         viewPager.addOnPageChangeListener(new ViewPager.OnPageChangeListener() {
             @Override
@@ -86,14 +88,13 @@ public class MainActivity extends MvpAppCompatActivity implements MainView {
         pageSwitcher(5000, true);
     }
 
-    // блокировка касания
-    private void lockTouchScreen() {
-        getWindow().setFlags(WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE,
-                WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE);
-    }
-
     @Override
     public void showMedia(Media media, boolean isOnline) {
+        try {
+            UtilsKt.cleanVideoCacheDir(this);
+        } catch (IOException e) {
+            // FIXME
+        }
         tryAgainButton.setVisibility(View.GONE);
         this.media = media;
         for (int i = 0; i < media.getDataList().size(); i++) {
