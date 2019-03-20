@@ -19,12 +19,9 @@ public class MainPresenter extends MvpPresenter<MainView> {
 
     private DataManager dataManager;
     public static final String APP_PREFERENCES = "mysettings";
-    public static final String APP_PREFERENCES_NAME = "Name";
     SharedPreferences mSettings;
-    List<Media.Data> listStr = new ArrayList<>();
-    Media mediaStr = new Media("", new ArrayList<Media.Data>());
 
-    Media media = new Media("", new ArrayList<Media.Data>());
+    Media media = new Media("", new ArrayList<>());
     List<Media.Data> list = new ArrayList<>();
     MainActivity mainActivity;
 
@@ -51,11 +48,8 @@ public class MainPresenter extends MvpPresenter<MainView> {
                         media = response.body();
                         list = media.getDataList();
                     }
-                    String url = "https://videos1.ochepyatki.ru/53122/video_53122.mp4";
+//                    String url = "https://videos1.ochepyatki.ru/53122/video_53122.mp4";
                     for (int i = 0; i < list.size(); i++) {
-                        if (list.get(i).getType() == 1) {
-                            list.get(i).setUrl(url);
-                        }
                         list.get(i).setName("name" + (i+1));
                     }
                     getViewState().showProgress(false);
@@ -67,23 +61,8 @@ public class MainPresenter extends MvpPresenter<MainView> {
             @Override
             public void onFailure(Call<Media> call, Throwable t) {
                 // FIXME
-//                try {
-//                    listStr = new ArrayList<>();
-//                    int ret = mSettings.getInt(APP_PREFERENCES_NAME, 1);
-//
-//                    for (int i = 0; i < ret; i++) {
-//                        listStr.add(new Media.Data(0, "", ""));
-//                        if (mSettings.getBoolean(i + "b", true)) {
-//                            listStr.get(i).setName(mSettings.getString(i + "a", ""));
-////                        listStr.get(i).setType(mSettings.getInt(i + "b", 0));
-//                        } else { }
-//                        mediaStr.setDataList(listStr);
-//                    }
-//                    getViewState().showMedia(mediaStr, false);
-//                } catch (Exception e) {
-                    getViewState().showProgress(false);
-                    getViewState().showNoNetwork("Нет подключения к интернету");
-//                }
+                getViewState().showProgress(false);
+                getViewState().showNoNetwork("Нет подключения к интернету");
             }
         });
     }

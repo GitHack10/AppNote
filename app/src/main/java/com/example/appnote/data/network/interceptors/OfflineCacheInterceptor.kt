@@ -13,7 +13,7 @@ class OfflineCacheInterceptor(private val context: Context) : Interceptor {
         var request = chain.request()
         if (!isNetworkAvailable(context)) {
             val cacheControl = CacheControl.Builder()
-                .maxStale(30, TimeUnit.DAYS)
+                .maxStale(7, TimeUnit.DAYS)
                 .build()
 
             request = request.newBuilder()

@@ -4,6 +4,7 @@ import android.support.v4.view.ViewPager;
 import android.os.Bundle;
 import android.view.View;
 import android.view.Window;
+import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.ProgressBar;
 import android.widget.Toast;
@@ -55,9 +56,10 @@ public class MainActivity extends MvpAppCompatActivity implements MainView {
         tryAgainButton = findViewById(R.id.Button_main_tryAgain);
         progressBar = findViewById(R.id.ProgressBar_main_progress);
         View v = viewPager;
+        lockTouchScreen();
 
-        //блокировка касания
-        viewPager.disableScroll(true);
+        //блокировка свайпов ViewPager
+//        viewPager.disableScroll(true);
 
         viewPager.addOnPageChangeListener(new ViewPager.OnPageChangeListener() {
             @Override
@@ -90,11 +92,11 @@ public class MainActivity extends MvpAppCompatActivity implements MainView {
 
     @Override
     public void showMedia(Media media, boolean isOnline) {
-        try {
-            UtilsKt.cleanVideoCacheDir(this);
-        } catch (IOException e) {
-            // FIXME
-        }
+//        try {
+//            UtilsKt.cleanVideoCacheDir(this);
+//        } catch (IOException e) {
+//            // FIXME
+//        }
         tryAgainButton.setVisibility(View.GONE);
         this.media = media;
         for (int i = 0; i < media.getDataList().size(); i++) {
@@ -107,6 +109,7 @@ public class MainActivity extends MvpAppCompatActivity implements MainView {
         }
 
         pager = new PagerAdapter(getSupportFragmentManager(), fragmentList, page);
+        viewPager.setOffscreenPageLimit(media.getDataList().size());
         viewPager.setAdapter(pager);
     }
 
@@ -169,8 +172,15 @@ public class MainActivity extends MvpAppCompatActivity implements MainView {
     public void onWindowFocusChanged(boolean hasFocus) {
         super.onWindowFocusChanged(hasFocus);
         if (hasFocus) {
+            //убираем границы экрана
             fullScreenMode();
         }
+    }
+
+    // блокировка касания
+    private void lockTouchScreen() {
+        getWindow().setFlags(WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE,
+                WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE);
     }
 
     private void fullScreenMode() {
@@ -181,6 +191,7 @@ public class MainActivity extends MvpAppCompatActivity implements MainView {
                         | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
                         | View.SYSTEM_UI_FLAG_FULLSCREEN
                         | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY);
+        getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
     }
 
     @Override

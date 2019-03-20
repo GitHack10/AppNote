@@ -29,6 +29,7 @@ import com.google.android.exoplayer2.extractor.ExtractorsFactory;
 import com.google.android.exoplayer2.source.ExtractorMediaSource;
 import com.google.android.exoplayer2.source.MediaSource;
 import com.google.android.exoplayer2.source.TrackGroupArray;
+import com.google.android.exoplayer2.source.hls.HlsMediaSource;
 import com.google.android.exoplayer2.trackselection.AdaptiveTrackSelection;
 import com.google.android.exoplayer2.trackselection.DefaultTrackSelector;
 import com.google.android.exoplayer2.trackselection.TrackSelection;
@@ -52,8 +53,9 @@ public class SlideFragment extends Fragment implements CacheListener {
     private final static String TYPE = "type";
     private final static String IS_ONLINE = "online";
     int page;
+    boolean isError;
 
-    public static SlideFragment newInstance(String text, String url, int type, int page, boolean isOnline){
+    public static SlideFragment newInstance(String text, String url, int type, int page, boolean isOnline) {
         Bundle bundle = new Bundle();
         bundle.putString(TEXT, text);
         bundle.putString(URL, url);
@@ -99,7 +101,7 @@ public class SlideFragment extends Fragment implements CacheListener {
     private void showMedia() {
         page = getArguments().getInt(PAGE);
         pagerTextView.setText(getArguments().getString(TEXT));
-        if(getArguments().getInt(TYPE) == 1 && getArguments().getBoolean(IS_ONLINE)) {
+        if (getArguments().getInt(TYPE) == 1 && getArguments().getBoolean(IS_ONLINE)) {
             initializePlayer(getArguments().getString(URL));
             if (page == 0) startPlayer();
             imageView.setVisibility(View.INVISIBLE);
@@ -124,15 +126,15 @@ public class SlideFragment extends Fragment implements CacheListener {
         Log.d(LOG_TAG, String.format("onCacheAvailable. percents: %d, file: %s, url: %s", percentsAvailable, cacheFile, url));
     }
 
-    public void startPlayer(){
-        if(mediaPlayer!=null) mediaPlayer.setPlayWhenReady(true);
+    public void startPlayer() {
+        if (mediaPlayer != null) mediaPlayer.setPlayWhenReady(true);
     }
 
-    public void stopPlayer(){
-        if (mediaPlayer!=null) mediaPlayer.setPlayWhenReady(false);
+    public void stopPlayer() {
+        if (mediaPlayer != null) mediaPlayer.setPlayWhenReady(false);
     }
 
-    private void initializePlayer(String url){
+    private void initializePlayer(String url) {
 
         //Initialize the player
         mediaPlayer = newSimpleExoPlayer();
@@ -142,15 +144,20 @@ public class SlideFragment extends Fragment implements CacheListener {
         Log.d(LOG_TAG, "Use proxy url " + proxyUrl + " instead of original url " + url);
 
         //Initialize simpleExoPlayerView]
+        mediaPlayer.setVolume(0f);
         playerView.setPlayer(mediaPlayer);
 
         // Prepare the player with the source.
         MediaSource videoSource = newVideoSource(proxyUrl);
         mediaPlayer.prepare(videoSource);
 
+        // обрезка видео в случае необходимости
+//        ClippingMediaSource clippingMediaSource = new ClippingMediaSource(videoSource, 0, 20_000_000);
+
         mediaPlayer.addListener(new Player.EventListener() {
-            int a=0;
-            int b=0;
+            int a = 0;
+            int b = 0;
+
             @Override
             public void onTimelineChanged(Timeline timeline, Object manifest, int reason) {
             }
@@ -168,22 +175,22 @@ public class SlideFragment extends Fragment implements CacheListener {
             @Override
             public void onPlayerStateChanged(boolean playWhenReady, int playbackState) {
 
-                if(playWhenReady){
-                    if(a==0) {
-                        ((MainActivity)getActivity()).stopTimer();
+                if (playWhenReady || isError) {
+                    if (a == 0) {
+                        ((MainActivity) getActivity()).stopTimer();
                         a++;
-                        b=0;
+                        b = 0;
                     }
                 }
 
-                progressBar.setVisibility(playbackState==Player.STATE_BUFFERING ? View.VISIBLE : View.INVISIBLE);
+                progressBar.setVisibility(playbackState == Player.STATE_BUFFERING ? View.VISIBLE : View.INVISIBLE);
 
-                if(playbackState == Player.STATE_ENDED){
-                    if(b==0) {
+                if (playbackState == Player.STATE_ENDED || isError) {
+                    if (b == 0) {
                         ((MainActivity) getActivity()).pageSwitcher(5000, true);
-                        a=0;
+                        a = 0;
                         b++;
-                        mediaPlayer.setPlayWhenReady(false);
+                        stopPlayer();
                         mediaPlayer.seekTo(0);
                     }
                 }
@@ -201,7 +208,8 @@ public class SlideFragment extends Fragment implements CacheListener {
 
             @Override
             public void onPlayerError(ExoPlaybackException error) {
-
+                Log.e("EXO_PLAYBACK_ERROR: ", String.valueOf(error.getMessage()));
+                isError = true;
             }
 
             @Override
@@ -236,6 +244,10 @@ public class SlideFragment extends Fragment implements CacheListener {
         String userAgent = Util.getUserAgent(getActivity(), "AndroidVideoCache appnote");
         DataSource.Factory dataSourceFactory = new DefaultDataSourceFactory(getActivity(), userAgent, bandwidthMeter);
         ExtractorsFactory extractorsFactory = new DefaultExtractorsFactory();
-        return new ExtractorMediaSource(Uri.parse(url), dataSourceFactory, extractorsFactory, null, null);
+        if (url.contains("m3u8")) {
+            return new HlsMediaSource(Uri.parse(url), dataSourceFactory, 3, null, null);
+        } else {
+            return new ExtractorMediaSource(Uri.parse(url), dataSourceFactory, extractorsFactory, null, null);
+        }
     }
 }
