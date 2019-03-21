@@ -4,9 +4,9 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    tools:context=".presentation.ui.MainActivity">
+    tools:context="ru.diitcenter.appnote.presentation.ui.MainActivity">
 
-    <com.example.appnote.presentation.CustomViewPager
+    <ru.diitcenter.appnote.presentation.CustomViewPager
         android:id="@+id/viewPager"
         android:layout_width="match_parent"
         android:layout_height="match_parent" />

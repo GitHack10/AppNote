@@ -6,12 +6,20 @@ apply plugin: 'kotlin-kapt'
 android {
     compileSdkVersion 28
     defaultConfig {
-        applicationId "com.example.appnote"
+        applicationId "ru.diitcenter.appnote"
         minSdkVersion 16
         targetSdkVersion 28
         versionCode 1
         versionName "1.0"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+    }
+    signingConfigs {
+        release {
+            keyAlias 'key0'
+            keyPassword 'AppNote21032019'
+            storePassword 'AppNote21032019AK'
+            storeFile file('../keystore.jks')
+        }
     }
     buildTypes {
         release {
